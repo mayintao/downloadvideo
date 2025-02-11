@@ -4,10 +4,13 @@ from yt_dlp import YoutubeDL
 import os
 import threading
 
-# 打包方法：cd 进入你的文件路径，然后执行：pyinstaller --onefile 要打包的文件.py
+# 打包方法：cd 进入你的文件路径，然后执行：pyinstaller --onefile downloadvideo.py
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
+
+port = int(os.environ.get("PORT", 5000))  # 从环境变量读取端口，默认为 5000
+app.run(host="0.0.0.0", port=port, debug=True)
 
 DOWNLOAD_FOLDER = "downloads"
 if not os.path.exists(DOWNLOAD_FOLDER):
