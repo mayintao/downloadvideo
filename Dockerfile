@@ -9,14 +9,14 @@ WORKDIR /app
 
 # 更新 apt 包索引，并安装 Python 及必要工具
 RUN apt update && apt install -y --no-install-recommends \
-    python3 python3-pip ffmpeg curl wget && \
+    python3 python3-pip python3-venv ffmpeg curl wget ca-certificates && \
     apt clean && rm -rf /var/lib/apt/lists/*
 
-# 确保 Python3 可用
-RUN python3 --version
+# 检查 Python 和 curl 版本（用于调试）
+RUN python3 --version && curl --version
 
-# 手动安装 pip（如果默认的 pip 失败）
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
+# 手动下载安装 pip
+RUN wget https://bootstrap.pypa.io/get-pip.py -O /tmp/get-pip.py && python3 /tmp/get-pip.py
 
 # 确保 pip 可用，并升级到最新版本
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
