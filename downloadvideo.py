@@ -36,6 +36,16 @@ def progress_hook(d):
         }
 
 
+# http://127.0.0.1:5000/api/tasks/checkfile/Iz9Gr1ATrDo
+@app.route("/api/tasks/checkfile/<string:videoId>", methods=["GET"])
+def checkfile(videoId):
+    """ 检查文件是否存在 """
+    filepath = os.path.join(DOWNLOAD_FOLDER, f"{videoId}.mp4")  # ✅ 确保检查的是最终 mp4 文件
+    if os.path.exists(filepath):
+        return jsonify({"error": 0, "msg": "文件已存在", "videoId": videoId})
+    return jsonify({"error": 1, "msg": "文件未找到"}), 404
+
+
 # http://127.0.0.1:5000/api/tasks/downloadvideobyytnew/Iz9Gr1ATrDo
 @app.route("/api/tasks/downloadvideobyytnew/<string:videoId>", methods=["GET"])
 def downloadvideobyytnew(videoId):
@@ -60,6 +70,7 @@ def downloadvideobyytnew(videoId):
                 "key": "FFmpegVideoConvertor",
                 "preferedformat": "mp4",
             }],
+            "extractor-args": "youtube:player_client=android"
         }) as ydl:
             ydl.download([url])
 
@@ -73,15 +84,6 @@ def downloadvideobyytnew(videoId):
 def getprogress(videoId):
     """ 获取下载进度 """
     return jsonify(progress_data.get(videoId, {"status": "not started"}))
-
-
-@app.route("/api/tasks/checkfile/<string:videoId>", methods=["GET"])
-def checkfile(videoId):
-    """ 检查文件是否存在 """
-    filepath = os.path.join(DOWNLOAD_FOLDER, f"{videoId}.mp4")  # ✅ 确保检查的是最终 mp4 文件
-    if os.path.exists(filepath):
-        return jsonify({"error": 0, "msg": "文件已存在", "videoId": videoId})
-    return jsonify({"error": 1, "msg": "文件未找到"}), 404
 
 
 @app.route("/api/tasks/downloadfile/<string:videoId>", methods=["GET"])
