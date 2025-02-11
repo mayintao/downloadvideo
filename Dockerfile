@@ -1,7 +1,7 @@
 # 使用 Ubuntu 作为基础镜像
 FROM ubuntu:latest
 
-# 设置环境变量，避免 apt 交互模式导致构建失败
+# 设置环境变量，避免 apt 交互模式导致安装失败
 ENV DEBIAN_FRONTEND=noninteractive
 
 # 设置工作目录
@@ -9,8 +9,14 @@ WORKDIR /app
 
 # 更新 apt 包索引，并安装 Python 及必要工具
 RUN apt update && apt install -y --no-install-recommends \
-    python3 python3-pip ffmpeg curl && \
+    python3 python3-pip ffmpeg curl wget && \
     apt clean && rm -rf /var/lib/apt/lists/*
+
+# 确保 Python3 可用
+RUN python3 --version
+
+# 手动安装 pip（如果默认的 pip 失败）
+RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3
 
 # 确保 pip 可用，并升级到最新版本
 RUN python3 -m pip install --no-cache-dir --upgrade pip setuptools wheel
