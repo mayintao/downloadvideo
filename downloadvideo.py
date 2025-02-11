@@ -9,9 +9,6 @@ import threading
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
 
-port = int(os.environ.get("PORT", 5000))  # 从环境变量读取端口，默认为 5000
-app.run(host="0.0.0.0", port=port, debug=True)
-
 DOWNLOAD_FOLDER = "downloads"
 if not os.path.exists(DOWNLOAD_FOLDER):
     os.makedirs(DOWNLOAD_FOLDER)
@@ -39,6 +36,7 @@ def progress_hook(d):
         }
 
 
+#http://127.0.0.1:5000/api/tasks/downloadvideobyytnew/Iz9Gr1ATrDo
 @app.route("/api/tasks/downloadvideobyytnew/<string:videoId>", methods=["GET"])
 def downloadvideobyytnew(videoId):
     """ 启动后台线程下载视频 """
