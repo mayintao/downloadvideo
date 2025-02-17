@@ -3,7 +3,6 @@ from flask_cors import CORS
 from yt_dlp import YoutubeDL
 import os
 import threading
-import browser_cookie3
 import requests
 
 # 打包方法：cd 进入你的文件路径，然后执行：pyinstaller --onefile downloadvideo.py
@@ -140,46 +139,46 @@ def downloadfile(videoId):
     return response
 
 
-def get_youtube_cookies():
-    """从 Chrome / Edge / Firefox 读取本地 YouTube Cookie"""
-    try:
-        cookies = browser_cookie3.chrome(domain_name="youtube.com")  # 适用于 Chrome / Edge
-        # cookies = browser_cookie3.firefox(domain_name="youtube.com")  # 如果使用 Firefox，换这个
-        return "; ".join([f"{cookie.name}={cookie.value}" for cookie in cookies])
-    except Exception as e:
-        print(f"获取 Cookie 失败: {e}")
-        return None
-
-
-def save_youtube_cookies():
-    """自动获取 YouTube Cookie 并保存为符合 Netscape 格式的 cookies.txt"""
-    try:
-        # 获取 Chrome 中的 YouTube cookies
-        cookies = browser_cookie3.chrome(domain_name="youtube.com")
-
-        # 打开文件，准备保存为 Netscape 格式
-        with open("cookies.txt", "w") as f:
-            # 写入文件头部
-            f.write("# Netscape HTTP Cookie File\n")
-            f.write("# This is a generated file! Do not edit.\n")
-            f.write("# https://www.netscape.com/newsref/std/cookie_spec.html\n")
-
-            # 遍历 cookies，按照 Netscape 格式写入每个 cookie
-            for cookie in cookies:
-                # 如果 cookie 没有过期，使用 0 表示会话 cookie
-                expires = 0 if not cookie.expires else int(cookie.expires)
-                # 确保 cookie 是 HTTPS（为 Secure 设置 True），以及正确的 Domain 和 Path
-                secure = "TRUE" if cookie.secure else "FALSE"
-                domain = cookie.domain
-                path = cookie.path if cookie.path else "/"
-
-                # 格式化一行 cookie 信息
-                cookie_line = f"{domain}\tTRUE\t{path}\t{secure}\t{expires}\t{cookie.name}\t{cookie.value}\n"
-                f.write(cookie_line)
-
-        print("✅ 成功保存 YouTube Cookie 到 cookies.txt")
-    except Exception as e:
-        print(f"❌ 获取 Cookie 失败: {e}")
+# def get_youtube_cookies():
+#     """从 Chrome / Edge / Firefox 读取本地 YouTube Cookie"""
+#     try:
+#         cookies = browser_cookie3.chrome(domain_name="youtube.com")  # 适用于 Chrome / Edge
+#         # cookies = browser_cookie3.firefox(domain_name="youtube.com")  # 如果使用 Firefox，换这个
+#         return "; ".join([f"{cookie.name}={cookie.value}" for cookie in cookies])
+#     except Exception as e:
+#         print(f"获取 Cookie 失败: {e}")
+#         return None
+#
+#
+# def save_youtube_cookies():
+#     """自动获取 YouTube Cookie 并保存为符合 Netscape 格式的 cookies.txt"""
+#     try:
+#         # 获取 Chrome 中的 YouTube cookies
+#         cookies = browser_cookie3.chrome(domain_name="youtube.com")
+#
+#         # 打开文件，准备保存为 Netscape 格式
+#         with open("cookies.txt", "w") as f:
+#             # 写入文件头部
+#             f.write("# Netscape HTTP Cookie File\n")
+#             f.write("# This is a generated file! Do not edit.\n")
+#             f.write("# https://www.netscape.com/newsref/std/cookie_spec.html\n")
+#
+#             # 遍历 cookies，按照 Netscape 格式写入每个 cookie
+#             for cookie in cookies:
+#                 # 如果 cookie 没有过期，使用 0 表示会话 cookie
+#                 expires = 0 if not cookie.expires else int(cookie.expires)
+#                 # 确保 cookie 是 HTTPS（为 Secure 设置 True），以及正确的 Domain 和 Path
+#                 secure = "TRUE" if cookie.secure else "FALSE"
+#                 domain = cookie.domain
+#                 path = cookie.path if cookie.path else "/"
+#
+#                 # 格式化一行 cookie 信息
+#                 cookie_line = f"{domain}\tTRUE\t{path}\t{secure}\t{expires}\t{cookie.name}\t{cookie.value}\n"
+#                 f.write(cookie_line)
+#
+#         print("✅ 成功保存 YouTube Cookie 到 cookies.txt")
+#     except Exception as e:
+#         print(f"❌ 获取 Cookie 失败: {e}")
 
 
 if __name__ == "__main__":
