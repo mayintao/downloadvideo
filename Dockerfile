@@ -21,8 +21,11 @@ RUN python3 -m pip install --upgrade pip setuptools wheel
 # 复制 Python 文件到容器
 COPY downloadvideo.py /app/downloadvideo.py
 
+# 复制依赖文件（如果存在）
+COPY requirements.txt /app/requirements.txt
+
 # 安装 Python 依赖
-RUN pip install --no-cache-dir flask flask-cors yt-dlp
+RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # 暴露 Flask 运行端口
 EXPOSE 5000
