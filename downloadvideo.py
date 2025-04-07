@@ -3,13 +3,29 @@ from flask_cors import CORS
 from yt_dlp import YoutubeDL
 import os
 import threading
+from dotenv import load_dotenv
 
 # 打包方法：python控制台执行：pyinstaller --onefile downloadvideo.py
 
-# 使用个人的YouTube写 cookie入文件， cookie 到本地临时文件
-print("Cookie内容是否存在？", os.path.exists("cookies.txt"))
-with open("cookies.txt", "w", encoding="utf-8") as f:
-    f.write(os.environ["YT_COOKIES"])
+load_dotenv()
+# 从环境变量中获取 cookie 内容
+cookie_content = os.environ.get("YT_COOKIES")
+
+# 调试输出（可选）
+print("是否读取到环境变量？", "YT_COOKIES" in os.environ)
+print("环境变量内容前100字符：", cookie_content[:100] if cookie_content else "无")
+
+# 判断 cookie 是否存在
+if not cookie_content:
+    print("❌ 未获取到 YT_COOKIES 环境变量，无法下载视频。")
+else:
+    print("✅ 成功读取 YT_COOKIES，开始写入 cookies.txt")
+
+    with open("cookies.txt", "w", encoding="utf-8") as f:
+        f.write(cookie_content)
+
+    # 可选：确认文件写入是否成功
+    print("✅ cookies.txt 写入完成：", os.path.exists("cookies.txt"))
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
