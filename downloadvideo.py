@@ -1,31 +1,64 @@
+import tempfile
+
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
 from yt_dlp import YoutubeDL
 import os
 import threading
-from dotenv import load_dotenv
 
 # 打包方法：python控制台执行：pyinstaller --onefile downloadvideo.py
+# 将 cookies 从 cookies.txt 文件转换为字典
+cookies = [
+    {'domain': '.youtube.com', 'name': 'PREF', 'value': 'f4=4000000&tz=Asia.Kuching&f7=100', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': 'LOGIN_INFO',
+     'value': 'AFmmF2swRgIhAPe3vlaX_xLpdhRBWqbsCSIuABBH7ZpZ5ioNnhVD1HLbAiEAtFTz-ZbJtEgWtWYi61jYp_N1RwW3Fz-r_Vffrt4Ev9w:QUQ3MjNmeG15dldIbFVJSmxVYW5VVlNLY2tXTDB4dVEtVm1VSVpoUmtVM2xnb2xYamdiMm9zYk5DbTdHYTV6RmpqN0ZXOWJ2SVNDa0FPLUpxMTRCelRFRmlqT21RU0IxejFjVzgzOWZvSDZTRUJ3LUNoUUJhc3lfaGhHVVFGbVFiRUQ4VU9uZUZQbWl6OWVuX3pOM3BBSW11c0w1anJaMWhR',
+     'path': '/', 'secure': True},
+    {'domain': '.youtube.com', 'name': 'HSID', 'value': 'A2UHsB2VvTBKuydkC', 'path': '/', 'secure': True},
+    {'domain': '.youtube.com', 'name': 'SSID', 'value': 'AYO2XywiGjw0NCCCa', 'path': '/', 'secure': True},
+    {'domain': '.youtube.com', 'name': 'APISID', 'value': 'R53cYDewGpvp9DER/A7zCawVZhpLVRrLQJ', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': 'SAPISID', 'value': 'ewahBVrU0SobzUxU/ArECdcd693pAWRDO6', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-1PAPISID', 'value': 'ewahBVrU0SobzUxU/ArECdcd693pAWRDO6', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-3PAPISID', 'value': 'ewahBVrU0SobzUxU/ArECdcd693pAWRDO6', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': 'SID',
+     'value': 'g.a000vQhaIfpdKR9JP3scvueHOe7N-ydyNfPkeqJ-aIJti6soFu0Oo7aq5_QDfZqsips0mLAhHgACgYKAUsSAQASFQHGX2Mi-S5Pz2C1CcNGetp6gI5XqhoVAUF8yKr5CZnaFp4ghh81SsFTrR2T0076',
+     'path': '/', 'secure': False},
+    {'domain': '.youtube.com', 'name': '__Secure-1PSID',
+     'value': 'g.a000vQhaIfpdKR9JP3scvueHOe7N-ydyNfPkeqJ-aIJti6soFu0OltdO77mYoAcLAeHuGV-pvwACgYKAccSAQASFQHGX2MiQ4KApxvAVxpejulQoRAx2BoVAUF8yKo_i1VXuiLtBoKNRrJQFhY90076',
+     'path': '/', 'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-3PSID',
+     'value': 'g.a000vQhaIfpdKR9JP3scvueHOe7N-ydyNfPkeqJ-aIJti6soFu0OtgpKWGgpDu6E_Rp7L_sKbgACgYKAagSAQASFQHGX2MidvbaOvgmBk9Gd7idnoS3TRoVAUF8yKq8jEQDxA0MX4tkSjv80Ooo0076',
+     'path': '/', 'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-1PSIDTS',
+     'value': 'sidts-CjEB7pHptXy00S70BSIXqUaewWv6tVpUvrnosixpL8mEeIYlfG-3ezDVPLt8tWIHqhFNEAA', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-3PSIDTS',
+     'value': 'sidts-CjEB7pHptXy00S70BSIXqUaewWv6tVpUvrnosixpL8mEeIYlfG-3ezDVPLt8tWIHqhFNEAA', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': 'SIDCC',
+     'value': 'AKEyXzU6bKKIcc2L3oWm_EfopipAmh-ChHF5jM0fwdb3BDSpqoOjlZMw4PmE4g6mOcRJo6MB30g', 'path': '/',
+     'secure': False},
+    {'domain': '.youtube.com', 'name': '__Secure-1PSIDCC',
+     'value': 'AKEyXzW9gh3H2Mf4chRNGLHSsMgiGER4PEH44lSdZaFVDSkOLq0xA3QFRhAVvGvY8Ci9CjSMUnQ', 'path': '/',
+     'secure': True},
+    {'domain': '.youtube.com', 'name': '__Secure-3PSIDCC',
+     'value': 'AKEyXzWqfi9dgt7e3P0qPvbfE_zaAYBdS7oFpEX-OYxHV_TPd4f8s_Bw35Afcsui8pDMaxaQjQg', 'path': '/',
+     'secure': True},
+]
 
-load_dotenv()
-# 从环境变量中获取 cookie 内容
-cookie_content = os.environ.get("YT_COOKIES")
-
-# 调试输出（可选）
-print("是否读取到环境变量？", "YT_COOKIES" in os.environ)
-print("环境变量内容前100字符：", cookie_content[:100] if cookie_content else "无")
-
-# 判断 cookie 是否存在
-if not cookie_content:
-    print("❌ 未获取到 YT_COOKIES 环境变量，无法下载视频。")
-else:
-    print("✅ 成功读取 YT_COOKIES，开始写入 cookies.txt")
-
-    with open("cookies.txt", "w", encoding="utf-8") as f:
-        f.write(cookie_content)
-
-    # 可选：确认文件写入是否成功
-    print("✅ cookies.txt 写入完成：", os.path.exists("cookies.txt"))
+# 创建临时文件来存储 cookies
+with tempfile.NamedTemporaryFile(delete=False, mode='w', encoding='utf-8') as temp_cookie_file:
+    temp_cookie_file.write("# Netscape HTTP Cookie File\n")
+    temp_cookie_file.write("# This is a generated file! Do not edit.\n")
+    for cookie in cookies:
+        # 格式化为 Netscape cookie 格式
+        temp_cookie_file.write(
+            f"{cookie['domain']}\tTRUE\t{cookie['path']}\tTRUE\t{cookie['name']}\t{cookie['value']}\n")
+    temp_cookie_file_path = temp_cookie_file.name
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
@@ -56,7 +89,6 @@ def progress_hook(d):
 
 
 # http://127.0.0.1:5000/api/tasks/checkfile/Iz9Gr1ATrDo
-# https://little-lotty-hzmtt-6e7c69f2.koyeb.app/api/tasks/checkfile/Iz9Gr1ATrDo
 @app.route("/api/tasks/checkfile/<string:videoId>", methods=["GET"])
 def checkfile(videoId):
     """ 检查文件是否存在 """
@@ -83,7 +115,7 @@ def downloadvideobyytnew(videoId):
     def run_download():
 
         with YoutubeDL({
-            "cookiefile": "cookies.txt",
+            "cookiefile": temp_cookie_file_path,  # 使用临时 cookie 文件=
             "format": "bestvideo+bestaudio",
             "merge_output_format": "mp4",
             "outtmpl": os.path.join(DOWNLOAD_FOLDER, f"{videoId}.%(ext)s"),
