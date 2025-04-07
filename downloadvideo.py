@@ -7,6 +7,7 @@ import threading
 # 打包方法：python控制台执行：pyinstaller --onefile downloadvideo.py
 
 # 使用个人的YouTube写 cookie入文件， cookie 到本地临时文件
+print("Cookie内容是否存在？", os.path.exists("cookies.txt"))
 with open("cookies.txt", "w", encoding="utf-8") as f:
     f.write(os.environ["YT_COOKIES"])
 
