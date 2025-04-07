@@ -6,6 +6,10 @@ import threading
 
 # 打包方法：python控制台执行：pyinstaller --onefile downloadvideo.py
 
+# 使用个人的YouTube写 cookie入文件， cookie 到本地临时文件
+with open("cookies.txt", "w", encoding="utf-8") as f:
+    f.write(os.environ["YT_COOKIES"])
+
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
 
@@ -62,6 +66,7 @@ def downloadvideobyytnew(videoId):
     def run_download():
 
         with YoutubeDL({
+            "cookiefile": "cookies.txt",
             "format": "bestvideo+bestaudio",
             "merge_output_format": "mp4",
             "outtmpl": os.path.join(DOWNLOAD_FOLDER, f"{videoId}.%(ext)s"),
