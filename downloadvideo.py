@@ -1,4 +1,5 @@
 import tempfile
+import time
 
 from flask import Flask, jsonify, Response
 from flask_cors import CORS
@@ -50,6 +51,10 @@ cookies = [
      'secure': True},
 ]
 
+# 为每个 cookie 添加一个过期时间戳（这里设置为一个未来的时间）
+for cookie in cookies:
+    cookie['expiry'] = int(time.time()) + 31536000  # 当前时间加一年的秒数
+
 # 创建临时文件来存储 cookies
 with tempfile.NamedTemporaryFile(delete=False, mode='w', encoding='utf-8') as temp_cookie_file:
     temp_cookie_file.write("# Netscape HTTP Cookie File\n")
@@ -57,8 +62,10 @@ with tempfile.NamedTemporaryFile(delete=False, mode='w', encoding='utf-8') as te
     for cookie in cookies:
         # 格式化为 Netscape cookie 格式
         temp_cookie_file.write(
-            f"{cookie['domain']}\tTRUE\t{cookie['path']}\tTRUE\t{cookie['name']}\t{cookie['value']}\n")
+            f"{cookie['domain']}\tTRUE\t{cookie['path']}\tTRUE\t{cookie['expiry']}\t{cookie['name']}\t{cookie['value']}\n")
     temp_cookie_file_path = temp_cookie_file.name
+
+print(f"Temporary cookie file created at: {temp_cookie_file_path}")
 
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
